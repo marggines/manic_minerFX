@@ -101,10 +101,9 @@ struct Guardians_Vertical {
 
 
 void title_screen(){
+    bool exit_loop = false;
     
-   do{
-       
-        
+    do{
         arduboy.clear();
         arduboy.pollButtons();
         do{
@@ -162,7 +161,15 @@ void title_screen(){
     
          arduboy.display();
          FX::display(CLEAR_BUFFER);
-    }while(!arduboy.justReleased(A_BUTTON));
+         
+       // do{
+          //  arduboy.pollButtons();
+            if (arduboy.justPressed(A_BUTTON)) {
+                exit_loop = true;
+          }
+         
+    }while(!exit_loop);
+    //}while(!arduboy.justReleased(A_BUTTON));
     
     if(enable_audio){ audio.on(); }
     else { audio.off(); }    
@@ -830,7 +837,7 @@ bool detect_nasty_collisions(){
         for(int col=row*32; col<(row*32)+32; col++){ 
             for (byte i=NASTY_FIRST; i<=NASTY_LAST; i++){
                 if (tilemapBuffer[col] == i){
-                    if (arduboy.collide(Rect(player.x+1, player.y, 6, 16), Rect((col-(row*32))*8, (row)*8, 8,8))){
+                    if (arduboy.collide(Rect(player.x+1, player.y, 5, 16), Rect((col-(row*32))*8, (row)*8, 8,8))){
                         return true;
                         //sound.tone(800,100,400,50);
                     }
@@ -1015,7 +1022,7 @@ void set_initial_horizontal_guardians_parameters(){
 #define TELEPHONE   8
 #define EYE        12
 #define WIATRAK    16
-#define ROBOT      20
+#define ROBOT      23
 #define SOMETHING  27
 #define OCTOPUS    31
 #define ROBAL      35
@@ -1213,6 +1220,57 @@ bool detect_guardians_vertical_collisions(){
 }
 
 
+bool player_colision_horizontal(){
+    for(int row=0; row<16; row++){
+        for(int col=row*32; col<(row*32)+32; col++){ 
+            for (byte i=TILE_WALL_FIRST; i<TILE_WALL_LAST+1; i++){
+                if (tilemapBuffer[col] == i){
+                  //  if(player.is_walking){
+                        if (player.direction == RIGHT){
+                            if (arduboy.collide(Rect(player.x, player.y, 11, 16), Rect((col-(row*32))*8, (row)*8, 8,8))){
+                                sound.tone(200,100);
+                                return true;
+                            }
+                        }
+                        if (player.direction == LEFT){
+                            if (arduboy.collide(Rect(player.x-1, player.y, 2, 16), Rect((col-(row*32))*8, (row)*8, 8,8))){
+                                sound.tone(200,100);
+                                return true;
+                            }
+                        }
+                   // }
+                }
+            }
+        }
+    }
+    return false;    
+    
+}
+
+bool player_collision_vertical(){
+    for(int row=0; row<16; row++){
+        for(int col=row*32; col<(row*32)+32; col++){ 
+            for (byte i=TILE_WALL_FIRST; i<TILE_WALL_LAST+1; i++){
+                if (tilemapBuffer[col] == i){    
+                   //    if ((player.is_jumping) || (player.is_falling) || (player.is_directional_falling)) || (player.is_directional_jumping)){
+                        if (player.direction == RIGHT){
+                            if (arduboy.collide(Rect(player.x, player.y-1, 6, 10), Rect((col-(row*32))*8, (row)*8, 8,8))){
+                                sound.tone(700,100);
+                                return true;
+                            }
+                        }
+                        if (player.direction == LEFT){
+                            if (arduboy.collide(Rect(player.x+2, player.y, 6, 8), Rect((col-(row*32))*8, (row)*8, 8,8))){
+                                sound.tone(700,100);
+                                return true;
+                            }
+                        }
+                  //  }
+                }
+            }
+        }
+    }
+}
 
 bool player_collisions(){
     
@@ -1223,20 +1281,20 @@ bool player_collisions(){
                                  //if ((!player.is_directional_jumping) && (!player.is_jumping)){
                     if(player.is_walking){
                         if (player.direction == RIGHT){
-                            if (arduboy.collide(Rect(player.x+2, player.y, 8, 16), Rect((col-(row*32))*8, (row)*8, 8,8))){
+                            if (arduboy.collide(Rect(player.x, player.y, 11, 16), Rect((col-(row*32))*8, (row)*8, 8,8))){
                                 sound.tone(100,100);
                                 return true;
                             }
                         }
                         if (player.direction == LEFT){
-                            if (arduboy.collide(Rect(player.x, player.y, 2, 16), Rect((col-(row*32))*8, (row)*8, 8,8))){
+                            if (arduboy.collide(Rect(player.x-1, player.y, 2, 16), Rect((col-(row*32))*8, (row)*8, 8,8))){
                                 sound.tone(200,100);
                                 return true;
                             }
                         }
                     }
                     
-                    if ((player.is_directional_jumping) || (player.is_directional_falling)){
+               /*     if ((player.is_directional_jumping) || (player.is_directional_falling)){
                         if (player.direction == RIGHT){
                             if (arduboy.collide(Rect(player.x+10, player.y-1, 4, 8), Rect((col-(row*32))*8, (row)*8, 8,8))){
                                 sound.tone(300,100);
@@ -1249,9 +1307,9 @@ bool player_collisions(){
                                 return true;
                             }
                         }
-                    }
+                    } */
                     
-                    if ((player.is_jumping) || (player.is_falling)){
+               /*     if ((player.is_jumping) || (player.is_falling)){
                         if (player.direction == RIGHT){
                             if (arduboy.collide(Rect(player.x, player.y-1, 8, 10), Rect((col-(row*32))*8, (row)*8, 8,8))){
                                 sound.tone(700,100);
@@ -1264,7 +1322,7 @@ bool player_collisions(){
                                 return true;
                             }
                         }
-                    }   
+                    }   */
                 }
             }
         }
@@ -1342,7 +1400,7 @@ void player_movement(){
 
   if (player.is_directional_jumping) {
          player.is_walking = false;
-         if ((player.jump_iteration < JUMP_ITERATIONS) && (!player_collisions())){       
+         if ((player.jump_iteration < JUMP_ITERATIONS) && (!player_collision_vertical())){       
             if ((arduboy.everyXFrames(PLAYER_SPEED))) { 
                if ((player.y <= 88) && (player.y > CAMERA_Y_OFFSET)) {camera.y = camera.y - 1;}
                 player.y = player.y - 1;
@@ -1351,10 +1409,10 @@ void player_movement(){
         
         
              if (arduboy.everyXFrames(PLAYER_SPEED)) { 
-                if((player.direction == RIGHT)){
+                if((player.direction == RIGHT) && (!player_colision_horizontal())){
                     if ((player.x < 256 - 18)) {player.x = player.x + 1;}
                     if ((player.x>60) && (player.x<190)) {camera.x = camera.x + 1;}
-                } else if (player.direction == LEFT){
+                } else if ((player.direction == LEFT) && (!player_colision_horizontal())){
                     if ((player.x > 8)) {player.x = player.x - 1; }
                     if ((player.x>60) && (player.x<190)) {camera.x = camera.x - 1;}
                 }
@@ -1371,7 +1429,7 @@ void player_movement(){
     
     if (player.is_directional_falling){
         player.is_walking = false;
-        if ((player.jump_iteration < JUMP_ITERATIONS) && (!solid_below()) && (!player_collisions())) {               
+        if ((player.jump_iteration < JUMP_ITERATIONS) && (!solid_below()) && (!player_collision_vertical())) {               
             
             if (arduboy.everyXFrames(PLAYER_SPEED)) {
                 if ((player.y <= 88) && (player.y > CAMERA_Y_OFFSET)){camera.y = camera.y + 1;}
@@ -1379,13 +1437,13 @@ void player_movement(){
                 player.jump_iteration++;
             }
             if (arduboy.everyXFrames(PLAYER_SPEED)) {
-                if ((player.direction == RIGHT)){
+                if ((player.direction == RIGHT) && (!player_colision_horizontal())){
                     
                     if ((player.x < 256 - 18)) {player.x = player.x + 1;}
                     if ((player.x>60) && (player.x<190)) {camera.x = camera.x + 1;}
                
                
-                } else if (player.direction == LEFT){
+                } else if ((player.direction == LEFT) && (!player_colision_horizontal())){
                     if ((player.x > 8)) {player.x = player.x - 1; }
                     if ((player.x>60) && (player.x<190)) {camera.x = camera.x - 1;}
                 }
@@ -1405,7 +1463,7 @@ void player_movement(){
     
     if (player.is_jumping){
         player.is_walking = false;
-        if ((player.jump_iteration < JUMP_ITERATIONS) && (!player_collisions())) {
+        if ((player.jump_iteration < JUMP_ITERATIONS) && (!player_collision_vertical())) {
             if (arduboy.everyXFrames(PLAYER_SPEED)) { 
                 if ((player.y < 90) && (player.y > CAMERA_Y_OFFSET)){camera.y = camera.y - 1;}
                 player.y = player.y - 1;
@@ -1419,7 +1477,9 @@ void player_movement(){
     }
     
    if (player.is_falling){
-        if (!solid_below()) {
+       // if (!player_on_automove_layer()){player.is_walking = false;}
+        if ((!solid_below()) ) {
+            //player.is_walking = false;
             if (arduboy.everyXFrames(PLAYER_SPEED)) {
                 if ((player.y < 89) && (player.y > CAMERA_Y_OFFSET)){camera.y = camera.y + 1;}
                 player.y = player.y + 1;
@@ -1450,7 +1510,9 @@ void loop() {
             tinyfont.setCursor(123, 0);
             tinyfont.print("C");
         }
-  
+        
+        if(enable_audio){ audio.on(); }
+        else { audio.off(); }    
         
         
         draw_background();
